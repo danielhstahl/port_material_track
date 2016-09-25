@@ -44,8 +44,8 @@ type failure struct{
 }
 
 func writePortType(w http.ResponseWriter, r *http.Request){
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    /*w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     decoder := json.NewDecoder(r.Body)
     var t portType   
     err := decoder.Decode(&t)
@@ -61,8 +61,8 @@ func writePortType(w http.ResponseWriter, r *http.Request){
     json.NewEncoder(w).Encode(results)
 }
 func writeMaterialType(w http.ResponseWriter, r *http.Request){
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    /*w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     decoder := json.NewDecoder(r.Body)
     var t materialType   
     err := decoder.Decode(&t)
@@ -78,8 +78,8 @@ func writeMaterialType(w http.ResponseWriter, r *http.Request){
     json.NewEncoder(w).Encode(results)
 }
 func writeTransaction(w http.ResponseWriter, r *http.Request){
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    /*w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     decoder := json.NewDecoder(r.Body)
     var t transaction   
     err := decoder.Decode(&t)
@@ -102,11 +102,12 @@ func writeTransaction(w http.ResponseWriter, r *http.Request){
     
 }
 func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    /*w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     decoder := json.NewDecoder(r.Body)
     var t asOf
     err := decoder.Decode(&t)
+    log.Println("got here 110")
     if err != nil {
         log.Println(err)
     }
@@ -131,8 +132,8 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
     
 }
 func getPort(w http.ResponseWriter, r *http.Request){
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    /*w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     var results []string
 	rows, err1 := db.Query(`SELECT port FROM main.possibleports`)
     if err1!=nil{
@@ -150,8 +151,8 @@ func getPort(w http.ResponseWriter, r *http.Request){
     json.NewEncoder(w).Encode(results)
 }
 func getMaterial(w http.ResponseWriter, r *http.Request){
-    w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    /*w.Header().Set("Access-Control-Allow-Origin", "*")
+    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     var results []string
 	rows, err1 := db.Query(`SELECT material FROM main.possiblematerials`)
     if err1!=nil{
@@ -170,11 +171,11 @@ func getMaterial(w http.ResponseWriter, r *http.Request){
 }
 
 func init(){
-   /* f, err := os.OpenFile("log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
+    f, err := os.OpenFile("log", os.O_RDWR | os.O_CREATE | os.O_APPEND, 0666)
     if err != nil {
         log.Fatal("Couldn't open log")
     }
-    log.SetOutput(f)*/
+    log.SetOutput(f)
     pwd, _ := os.Getwd()
     file, err1 := ioutil.ReadFile(pwd+"/environment.json") // For read access
     if err1!=nil{
