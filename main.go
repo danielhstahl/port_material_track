@@ -54,7 +54,7 @@ func writePortType(w http.ResponseWriter, r *http.Request){
     }
     _, err1:=db.Exec(`INSERT INTO main.possibleports VALUES($1)`, t.Port)
     if err1!=nil{
-        log.Println(err)
+        log.Println(err1)
     }
     results:=new(success)
     results.Success=true
@@ -71,7 +71,7 @@ func writeMaterialType(w http.ResponseWriter, r *http.Request){
     }
     _, err1:=db.Exec(`INSERT INTO main.possiblematerials VALUES($1)`, t.Material)
     if err1!=nil{
-        log.Println(err)
+        log.Println(err1)
     }
     results:=new(success)
     results.Success=true
@@ -91,7 +91,7 @@ func writeTransaction(w http.ResponseWriter, r *http.Request){
     
     if err1!=nil{
         errors:=new(failure)
-        log.Println(err)
+        log.Println(err1)
         errors.Failure=err
         json.NewEncoder(w).Encode(errors)
     }else{
