@@ -135,7 +135,7 @@ func getPort(w http.ResponseWriter, r *http.Request){
     /*w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     var results []string
-	rows, err1 := db.Query(`SELECT port FROM main.possibleports`)
+	rows, err1 := db.Query(`SELECT port FROM main.possibleports ORDER BY port`)
     if err1!=nil{
         log.Fatal(err1)
     }
@@ -154,7 +154,7 @@ func getMaterial(w http.ResponseWriter, r *http.Request){
     /*w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     var results []string
-	rows, err1 := db.Query(`SELECT material FROM main.possiblematerials`)
+	rows, err1 := db.Query(`SELECT material FROM main.possiblematerials ORDER BY material`)
     if err1!=nil{
         log.Fatal(err1)
     }
