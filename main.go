@@ -86,6 +86,10 @@ func writeTransaction(w http.ResponseWriter, r *http.Request){
     if err != nil {
         log.Println(err)
     }
+    log.Println(t.Port)
+    log.Println(t.Material)
+    log.Println(t.Date)
+    log.Println(t.Amount)
     _, err1:=db.Exec(`INSERT INTO main.materialtransactions VALUES($1, $2, $3, $4)`, t.Port, t.Material, t.Date, t.Amount)
     
     
@@ -107,7 +111,6 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
     decoder := json.NewDecoder(r.Body)
     var t asOf
     err := decoder.Decode(&t)
-    log.Println("got here 110")
     if err != nil {
         log.Println(err)
     }
