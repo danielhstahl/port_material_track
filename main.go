@@ -86,10 +86,6 @@ func writeTransaction(w http.ResponseWriter, r *http.Request){
     if err != nil {
         log.Println(err)
     }
-    log.Println(t.Port)
-    log.Println(t.Material)
-    log.Println(t.Date)
-    log.Println(t.Amount)
     _, err1:=db.Exec(`INSERT INTO main.materialtransactions VALUES($1, $2, $3, $4)`, t.Port, t.Material, t.Date, t.Amount)
     
     
@@ -106,8 +102,6 @@ func writeTransaction(w http.ResponseWriter, r *http.Request){
     
 }
 func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
-    /*w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
     decoder := json.NewDecoder(r.Body)
     var t asOf
     err := decoder.Decode(&t)
@@ -129,6 +123,27 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
                 log.Println(err)
             }
             results=append(results, portRow)
+        }
+        json.NewEncoder(w).Encode(results)
+    }
+    
+}
+func getAllResults(w http.ResponseWriter, r *http.Request){
+    var results []transaction
+	rows, err1 := db.Query(`SELECT  port, transactiondate, amount, material FROM main.materialtransactions ORDER BY material, port, transactiondate`)
+    if err1!=nil{
+        errors:=new(failure)
+        log.Println(err1)
+        json.NewEncoder(w).Encode(errors)
+    }else{
+        defer rows.Close()
+        for rows.Next(){
+            var getRow transaction 
+            err:=rows.Scan(&getRow.Port, &getRow.Date, &getRow.Amount, &getRow.Material)
+            if err!=nil{
+                log.Println(err)
+            }
+            results=append(results, getRow)
         }
         json.NewEncoder(w).Encode(results)
     }
@@ -204,6 +219,7 @@ func main(){
     http.HandleFunc("/getResults", getAsOfMaterials)
     http.HandleFunc("/getPorts", getPort)
     http.HandleFunc("/getMaterials", getMaterial)
+    http.HandleFunc("/getAllResults", getAllResults)
     log.Println("Listening...")
     http.ListenAndServe(":3000", nil)
 }
