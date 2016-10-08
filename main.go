@@ -130,7 +130,7 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
 }
 func getAllResults(w http.ResponseWriter, r *http.Request){
     var results []transaction
-	rows, err1 := db.Query(`SELECT  port, transactiondate, amount, material FROM main.materialtransactions ORDER BY material, port, transactiondate`)
+	rows, err1 := db.Query(`SELECT  port, CAST(transactiondate as char(10)) as transactiondate, amount, material FROM main.materialtransactions ORDER BY material, port, transactiondate`)
     if err1!=nil{
         errors:=new(failure)
         log.Println(err1)
