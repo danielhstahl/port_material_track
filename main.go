@@ -30,8 +30,9 @@ type transaction struct{
     Date string
     Amount int
     Material string
+    Comment string
 }
-type getResults struct{
+type viewTransaction struct{
     Amount int
     Material string
     Port string
@@ -115,7 +116,7 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
     if err != nil {
         log.Println(err)
     }
-    var results []getResults
+    var results []viewTransaction
 	rows, err1 := db.Query(`SELECT SUM(amount) as amount, material, port FROM main.materialtransactions WHERE transactiondate <= $1 GROUP BY material, port ORDER BY material, port`, "'"+t.Date+"'")
     if err1!=nil{
         errors:=new(failure)
@@ -124,7 +125,7 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
     }else{
         defer rows.Close()
         for rows.Next(){
-            var portRow getResults 
+            var portRow viewTransaction 
             err:=rows.Scan(&portRow.Amount, &portRow.Material, &portRow.Port)
             if err!=nil{
                 log.Println(err)
