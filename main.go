@@ -9,6 +9,7 @@ import (
     "io/ioutil"
     "encoding/json"
 )
+const isDev bool = true
 var db *sql.DB
 type env struct{ //environmental variables
     PGUsername string
@@ -44,8 +45,10 @@ type failure struct{
 }
 
 func writePortType(w http.ResponseWriter, r *http.Request){
-    /*w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
+    if(isDev){
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
     decoder := json.NewDecoder(r.Body)
     var t portType   
     err := decoder.Decode(&t)
@@ -61,8 +64,10 @@ func writePortType(w http.ResponseWriter, r *http.Request){
     json.NewEncoder(w).Encode(results)
 }
 func writeMaterialType(w http.ResponseWriter, r *http.Request){
-    /*w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
+    if(isDev){
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
     decoder := json.NewDecoder(r.Body)
     var t materialType   
     err := decoder.Decode(&t)
@@ -78,15 +83,17 @@ func writeMaterialType(w http.ResponseWriter, r *http.Request){
     json.NewEncoder(w).Encode(results)
 }
 func writeTransaction(w http.ResponseWriter, r *http.Request){
-    /*w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
+    if(isDev){
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
     decoder := json.NewDecoder(r.Body)
     var t transaction   
     err := decoder.Decode(&t)
     if err != nil {
         log.Println(err)
     }
-    _, err1:=db.Exec(`INSERT INTO main.materialtransactions VALUES($1, $2, $3, $4)`, t.Port, t.Material, t.Date, t.Amount)
+    _, err1:=db.Exec(`INSERT INTO main.materialtransactions VALUES($1, $2, $3, $4, $5)`, t.Port, t.Material, t.Date, t.Amount, t.Comment)
     
     
     if err1!=nil{
@@ -129,6 +136,10 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
     
 }
 func getAllResults(w http.ResponseWriter, r *http.Request){
+    if(isDev){
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
     var results []transaction
 	rows, err1 := db.Query(`SELECT  port, CAST(transactiondate as char(10)) as transactiondate, amount, material FROM main.materialtransactions ORDER BY material, port, transactiondate`)
     if err1!=nil{
@@ -150,8 +161,10 @@ func getAllResults(w http.ResponseWriter, r *http.Request){
     
 }
 func getPort(w http.ResponseWriter, r *http.Request){
-    /*w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
+    if(isDev){
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
     var results []string
 	rows, err1 := db.Query(`SELECT port FROM main.possibleports ORDER BY port`)
     if err1!=nil{
@@ -169,8 +182,10 @@ func getPort(w http.ResponseWriter, r *http.Request){
     json.NewEncoder(w).Encode(results)
 }
 func getMaterial(w http.ResponseWriter, r *http.Request){
-    /*w.Header().Set("Access-Control-Allow-Origin", "*")
-    w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");*/
+    if(isDev){
+        w.Header().Set("Access-Control-Allow-Origin", "*")
+        w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    }
     var results []string
 	rows, err1 := db.Query(`SELECT material FROM main.possiblematerials ORDER BY material`)
     if err1!=nil{

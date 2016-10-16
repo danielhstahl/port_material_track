@@ -9,11 +9,11 @@ Setup (note that the PG user and PG password are generic...use your own!)
 `\connect portserver`
 `CREATE SCHEMA main AUTHORIZATION porttransaction;` 
 
-`CREATE TABLE main.possibleports (Port varchar(20) CONSTRAINT portkey PRIMARY KEY);`
+`CREATE TABLE main.possibleports (Port varchar(50) CONSTRAINT portkey PRIMARY KEY);`
 
-`CREATE TABLE main.possiblematerials (material varchar(20) CONSTRAINT matkey PRIMARY KEY);`
+`CREATE TABLE main.possiblematerials (material varchar(50) CONSTRAINT matkey PRIMARY KEY);`
 
-`CREATE TABLE main.materialtransactions (port varchar(20) not null, material varchar(20) not null, transactiondate date not null, amount int not null);`
+`CREATE TABLE main.materialtransactions (port varchar(50) not null, material varchar(50) not null, transactiondate date not null, amount int not null, comment text);`
 
 `ALTER TABLE main.materialtransactions ADD PRIMARY KEY(port, material, transactiondate);`
 
