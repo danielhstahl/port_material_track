@@ -9,7 +9,7 @@ import (
     "io/ioutil"
     "encoding/json"
 )
-const isDev bool = true
+const isDev bool = false
 var db *sql.DB
 type env struct{ //environmental variables
     PGUsername string
@@ -93,8 +93,10 @@ func writeTransaction(w http.ResponseWriter, r *http.Request){
     err := decoder.Decode(&t)
     if err != nil {
         log.Println(err)
+        return;
     }
-    _, err1:=db.Exec(`INSERT INTO main.materialtransactions VALUES($1, $2, $3, $4, $5)`, t.Port, t.Material, t.Date, t.Amount, t.Comment)
+    log.Println(t.Date)
+    _, err1:=db.Exec(`INSERT INTO main.materialtransactions (port, material, transactiondate, amount, comment) VALUES($1, $2, $3, $4, $5)`, t.Port, t.Material, t.Date, t.Amount, t.Comment)
     
     
     if err1!=nil{
@@ -121,6 +123,7 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
     if err1!=nil{
         errors:=new(failure)
         log.Println(err1)
+        errors.Failure=err1
         json.NewEncoder(w).Encode(errors)
     }else{
         defer rows.Close()
@@ -142,16 +145,17 @@ func getAllResults(w http.ResponseWriter, r *http.Request){
         w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
     }
     var results []transaction
-	rows, err1 := db.Query(`SELECT  port, CAST(transactiondate as char(10)) as transactiondate, amount, material FROM main.materialtransactions ORDER BY material, port, transactiondate`)
+	rows, err1 := db.Query(`SELECT  port, CAST(transactiondate as char(10)) as transactiondate, amount, material, comment FROM main.materialtransactions ORDER BY material, port, transactiondate`)
     if err1!=nil{
         errors:=new(failure)
+        errors.Failure=err1
         log.Println(err1)
         json.NewEncoder(w).Encode(errors)
     }else{
         defer rows.Close()
         for rows.Next(){
             var getRow transaction 
-            err:=rows.Scan(&getRow.Port, &getRow.Date, &getRow.Amount, &getRow.Material)
+            err:=rows.Scan(&getRow.Port, &getRow.Date, &getRow.Amount, &getRow.Material, &getRow.Comment)
             if err!=nil{
                 log.Println(err)
             }
@@ -227,8 +231,10 @@ func init(){
 }
 func main(){
     defer db.Close()
-    fs := http.FileServer(http.Dir(currEnv.Statichtml))
-    http.Handle("/", fs)
+    if(!isDev){
+        fs := http.FileServer(http.Dir(currEnv.Statichtml))
+        http.Handle("/", fs)
+    }
     http.HandleFunc("/writePort", writePortType)
     http.HandleFunc("/writeMaterial", writeMaterialType)
     http.HandleFunc("/writeTransaction", writeTransaction)
