@@ -95,7 +95,6 @@ func writeTransaction(w http.ResponseWriter, r *http.Request){
         log.Println(err)
         return;
     }
-    log.Println(t.Date)
     _, err1:=db.Exec(`INSERT INTO main.materialtransactions (port, material, transactiondate, amount, comment) VALUES($1, $2, $3, $4, $5)`, t.Port, t.Material, t.Date, t.Amount, t.Comment)
     
     
