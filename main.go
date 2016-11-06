@@ -2,7 +2,7 @@ package main
 import (
 	"database/sql"
 	_ "github.com/lib/pq"
-    //"fmt"
+    "github.com/abbot/go-http-auth"
     "log"
     "net/http"
     "os"
@@ -11,10 +11,18 @@ import (
 )
 const isDev bool = false
 var db *sql.DB
+func Secret(user string, realm string) string {
+    if user == "admin" {
+        return currEnv.StandardPassword
+    }
+    return ""
+}
 type env struct{ //environmental variables
     PGUsername string
     PGPassword string
+    StandardPassword string
     Statichtml string
+    
 }
 type portType struct{
     Port string
@@ -45,7 +53,7 @@ type failure struct{
     Failure error
 }
 
-func writePortType(w http.ResponseWriter, r *http.Request){
+func writePortType(w http.ResponseWriter, r *auth.AuthenticatedRequest){
     if(isDev){
         w.Header().Set("Access-Control-Allow-Origin", "*")
         w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -64,7 +72,7 @@ func writePortType(w http.ResponseWriter, r *http.Request){
     results.Success=true
     json.NewEncoder(w).Encode(results)
 }
-func writeMaterialType(w http.ResponseWriter, r *http.Request){
+func writeMaterialType(w http.ResponseWriter, r *auth.AuthenticatedRequest){
     if(isDev){
         w.Header().Set("Access-Control-Allow-Origin", "*")
         w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -83,7 +91,7 @@ func writeMaterialType(w http.ResponseWriter, r *http.Request){
     results.Success=true
     json.NewEncoder(w).Encode(results)
 }
-func writeTransaction(w http.ResponseWriter, r *http.Request){
+func writeTransaction(w http.ResponseWriter, r *auth.AuthenticatedRequest){
     if(isDev){
         w.Header().Set("Access-Control-Allow-Origin", "*")
         w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -110,7 +118,7 @@ func writeTransaction(w http.ResponseWriter, r *http.Request){
     }
     
 }
-func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
+func getAsOfMaterials(w http.ResponseWriter, r *auth.AuthenticatedRequest){
     decoder := json.NewDecoder(r.Body)
     var t asOf
     err := decoder.Decode(&t)
@@ -138,7 +146,7 @@ func getAsOfMaterials(w http.ResponseWriter, r *http.Request){
     }
     
 }
-func getAllResults(w http.ResponseWriter, r *http.Request){
+func getAllResults(w http.ResponseWriter, r *auth.AuthenticatedRequest){
     if(isDev){
         w.Header().Set("Access-Control-Allow-Origin", "*")
         w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -164,7 +172,7 @@ func getAllResults(w http.ResponseWriter, r *http.Request){
     }
     
 }
-func getPort(w http.ResponseWriter, r *http.Request){
+func getPort(w http.ResponseWriter, r *auth.AuthenticatedRequest){
     if(isDev){
         w.Header().Set("Access-Control-Allow-Origin", "*")
         w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -185,7 +193,7 @@ func getPort(w http.ResponseWriter, r *http.Request){
     }
     json.NewEncoder(w).Encode(results)
 }
-func getMaterial(w http.ResponseWriter, r *http.Request){
+func getMaterial(w http.ResponseWriter, r *auth.AuthenticatedRequest){
     if(isDev){
         w.Header().Set("Access-Control-Allow-Origin", "*")
         w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -230,17 +238,18 @@ func init(){
 }
 func main(){
     defer db.Close()
-    if(!isDev){
-        fs := http.FileServer(http.Dir(currEnv.Statichtml))
-        http.Handle("/", fs)
-    }
-    http.HandleFunc("/writePort", writePortType)
-    http.HandleFunc("/writeMaterial", writeMaterialType)
-    http.HandleFunc("/writeTransaction", writeTransaction)
-    http.HandleFunc("/getResults", getAsOfMaterials)
-    http.HandleFunc("/getPorts", getPort)
-    http.HandleFunc("/getMaterials", getMaterial)
-    http.HandleFunc("/getAllResults", getAllResults)
+    
+    ath := auth.NewBasicAuthenticator("example.com", Secret)
+    http.HandleFunc("/", ath.Wrap(func(res http.ResponseWriter, req *auth.AuthenticatedRequest) {
+        http.FileServer(http.Dir(currEnv.Statichtml)).ServeHTTP(res, &req.Request)
+    }))
+    http.HandleFunc("/writePort", ath.Wrap(writePortType))
+    http.HandleFunc("/writeMaterial", ath.Wrap(writeMaterialType))
+    http.HandleFunc("/writeTransaction", ath.Wrap(writeTransaction))
+    http.HandleFunc("/getResults", ath.Wrap(getAsOfMaterials))
+    http.HandleFunc("/getPorts", ath.Wrap(getPort))
+    http.HandleFunc("/getMaterials", ath.Wrap(getMaterial))
+    http.HandleFunc("/getAllResults", ath.Wrap(getAllResults))
     log.Println("Listening...")
     http.ListenAndServe(":3000", nil)
 }
