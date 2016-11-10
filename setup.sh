@@ -1,6 +1,6 @@
 sudo apt-get install postgresql
-sudo -u postgres psql CREATE USER porttransaction;
-echo "$1"
+sudo -u postgres psql 
+CREATE USER porttransaction;
 ALTER USER porttransaction PASSWORD '$1'; 
 CREATE DATABASE portserver WITH OWNER=porttransaction; 
 \connect portserver
