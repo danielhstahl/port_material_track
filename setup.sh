@@ -1,7 +1,10 @@
 sudo apt-get install postgresql
 sudo -u postgres psql CREATE USER porttransaction;
-ALTER USER porttransaction PASSWORD '$1'; CREATE DATABASE portserver WITH OWNER=porttransaction; 
-\connect portserver CREATE SCHEMA main AUTHORIZATION porttransaction;
+echo "$1"
+ALTER USER porttransaction PASSWORD '$1'; 
+CREATE DATABASE portserver WITH OWNER=porttransaction; 
+\connect portserver
+CREATE SCHEMA main AUTHORIZATION porttransaction;
 CREATE TABLE main.possibleports (Port varchar(50) CONSTRAINT portkey PRIMARY KEY);
 CREATE TABLE main.possiblematerials (material varchar(50) CONSTRAINT matkey PRIMARY KEY);
 CREATE TABLE main.materialtransactions (port varchar(50) not null, material varchar(50) not null, transactiondate date not null, amount int not null, comment text);
