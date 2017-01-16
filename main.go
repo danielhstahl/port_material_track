@@ -109,7 +109,7 @@ func writeTransaction(w http.ResponseWriter, r *auth.AuthenticatedRequest){
     if err1!=nil{
         errors:=new(failure)
         log.Println(err1)
-        errors.Failure=err
+        errors.Failure=err1
         json.NewEncoder(w).Encode(errors)
     }else{
         results:=new(success)
