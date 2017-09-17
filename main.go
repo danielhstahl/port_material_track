@@ -115,24 +115,27 @@ func writeTransaction(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 		return
 	}
 
-	tx, err := db.Begin()
-	if err != nil {
+	tx, errTx := db.Begin()
+	if errTx != nil {
 		return
 	}
 
-	_, err1 := db.Exec(`INSERT INTO main.materialtransactions (port, material, transactiondate, amount, comment) VALUES($1, $2, $3, $4, $5)`, t.FirstPort.Port, t.FirstPort.Material, t.FirstPort.Date, t.FirstPort.Amount, t.FirstPort.Comment)
+	_, errFirstInput := tx.Exec(`INSERT INTO main.materialtransactions (port, material, transactiondate, amount, comment) VALUES($1, $2, $3, $4, $5)`, t.FirstPort.Port, t.FirstPort.Material, t.FirstPort.Date, t.FirstPort.Amount, t.FirstPort.Comment)
 
 	if t.SecondPort.Port != "" {
-		_, err2 := db.Exec(`INSERT INTO main.materialtransactions (port, material, transactiondate, amount, comment) VALUES($1, $2, $3, $4, $5)`, t.SecondPort.Port, t.SecondPort.Material, t.SecondPort.Date, t.SecondPort.Amount, t.SecondPort.Comment)
-		err = err2
+		//log.Println("Second port is not blank")
+		//log.Println(t.SecondPort.Port)
+		_, errSecondInput := tx.Exec(`INSERT INTO main.materialtransactions (port, material, transactiondate, amount, comment) VALUES($1, $2, $3, $4, $5)`, t.SecondPort.Port, t.SecondPort.Material, t.SecondPort.Date, t.SecondPort.Amount, t.SecondPort.Comment)
+		err = errSecondInput
 	}
 
 	defer func() {
-		if err1 != nil || err != nil {
+		if errFirstInput != nil || err != nil {
 			tx.Rollback()
 			errors := new(failure)
-			log.Println(err1)
-			errors.Failure = err1
+			log.Println(errFirstInput)
+			log.Println(err)
+			errors.Failure = err
 			json.NewEncoder(w).Encode(errors)
 			return
 		}
@@ -185,7 +188,7 @@ func getAllResults(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 		w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 	}
 	var results []transaction
-	rows, err1 := db.Query(`SELECT  port, CAST(transactiondate as char(10)) as transactiondate, amount, material, comment FROM main.materialtransactions ORDER BY material, port, transactiondate`)
+	rows, err1 := db.Query(`SELECT  port, CAST(transactiondate as char(10)) as transactiondate, amount, material, CASE WHEN comment IS NULL THEN '' ELSE comment END as comment FROM main.materialtransactions ORDER BY material, port, transactiondate`)
 	if err1 != nil {
 		errors := new(failure)
 		errors.Failure = err1
@@ -213,14 +216,14 @@ func getPort(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	var results []string
 	rows, err1 := db.Query(`SELECT port FROM main.possibleports ORDER BY port`)
 	if err1 != nil {
-		log.Fatal(err1)
+		log.Println(err1)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var portRow string
 		err := rows.Scan(&portRow)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		results = append(results, portRow)
 	}
@@ -234,14 +237,14 @@ func getMaterial(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	var results []string
 	rows, err1 := db.Query(`SELECT material FROM main.possiblematerials ORDER BY material`)
 	if err1 != nil {
-		log.Fatal(err1)
+		log.Println(err1)
 	}
 	defer rows.Close()
 	for rows.Next() {
 		var matRow string
 		err := rows.Scan(&matRow)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 		}
 		results = append(results, matRow)
 	}
@@ -249,7 +252,7 @@ func getMaterial(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 }
 
 func init() {
-	f, err := os.OpenFile("log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	f, err := os.OpenFile("server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
 		log.Fatal("Couldn't open log")
 	}
@@ -257,17 +260,18 @@ func init() {
 	pwd, _ := os.Getwd()
 	file, err1 := ioutil.ReadFile(pwd + "/environment.json") // For read access
 	if err1 != nil {
-		log.Fatal(err1)
+		log.Println(err1)
 	}
 	err2 := json.Unmarshal(file, &currEnv)
 	if err2 != nil {
-		log.Fatal(err2)
+		log.Println(err2)
 	}
 	var err3 error
 	db, err3 = sql.Open("postgres", "user="+currEnv.PGUsername+" dbname=portserver password="+currEnv.PGPassword)
 	if err3 != nil {
 		log.Fatal(err3)
 	}
+	log.Println(currEnv.Statichtml)
 }
 func main() {
 	defer db.Close()

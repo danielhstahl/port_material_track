@@ -1,3 +1,10 @@
 .vscode
 environment.json
 actualUserPasswordforDO.txt
+localRun.sh
+deploy.sh
+*.log
+*log
+killRemote.sh
+startRemote.sh
+copyRemote.sh
