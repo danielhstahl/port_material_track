@@ -1,1 +1,1 @@
-sudo -u postgres psql "TRUNCATE main.possibleports, main.possiblematerials, main.materialtransactions;"
+sudo -u postgres psql "\connect portserver TRUNCATE main.possibleports, main.possiblematerials, main.materialtransactions;"
