@@ -1,0 +1,1 @@
+sudo -u postgres psql "TRUNCATE main.possibleports, main.possiblematerials, main.materialtransactions;"
