@@ -8,3 +8,5 @@ deploy.sh
 killRemote.sh
 startRemote.sh
 copyRemote.sh
+port_material_track
+*.txt

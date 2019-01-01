@@ -1,4 +1,5 @@
 Postgresql information
+`sudo apt-get install postgresql`
 
 Setup (note that the PG user and PG password are generic...use your own!)
 `sudo -u postgres psql`
@@ -26,9 +27,9 @@ Setup (note that the PG user and PG password are generic...use your own!)
 Put an environment.json file like 
 
 `{
-    "username":"porttransaction",
-    "password":"zu3<U@2Cz[uG>Hmf",
-    "statichtml":"~/Documents/htmlApps/portClient/build"
+    "PGUsername":"porttransaction",
+    "PGPassword":"zu3<U@2Cz[uG>Hmf",
+    "Statichtml":"~/Documents/htmlApps/portClient/build"
 }`
 in the binary folder
 
