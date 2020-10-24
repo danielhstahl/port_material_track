@@ -10,3 +10,5 @@ startRemote.sh
 copyRemote.sh
 port_material_track
 *.txt
+vendor/*
+!vendor/modules.txt
