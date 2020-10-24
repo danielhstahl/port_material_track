@@ -64,6 +64,14 @@ type failure struct {
 	Failure error
 }
 
+func port(w http.ResponseWriter, r *auth.AuthenticatedRequest){
+	switch r.Method {
+		case "GET":     
+			getPort(w, r)
+		case "POST":
+			writePortType(w, r)
+	}
+}
 func writePortType(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	if isDev {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -83,6 +91,14 @@ func writePortType(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	results.Success = true
 	json.NewEncoder(w).Encode(results)
 }
+func material(w http.ResponseWriter, r *auth.AuthenticatedRequest){
+	switch r.Method {
+		case "GET":     
+			getMaterial(w, r)
+		case "POST":
+			writeMaterialType(w, r)
+	}
+}
 func writeMaterialType(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	if isDev {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -101,6 +117,14 @@ func writeMaterialType(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	results := new(success)
 	results.Success = true
 	json.NewEncoder(w).Encode(results)
+}
+func transaction_req(w http.ResponseWriter, r *auth.AuthenticatedRequest){
+	switch r.Method {
+		case "GET":     
+			getAllResults(w, r)
+		case "POST":
+			writeTransaction(w, r)
+	}
 }
 func writeTransaction(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	if isDev {
@@ -154,15 +178,24 @@ func writeTransaction(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	}()
 
 }
-func getAsOfMaterials(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
-	decoder := json.NewDecoder(r.Body)
-	var t asOf
-	err := decoder.Decode(&t)
-	if err != nil {
-		log.Println(err)
+func all(w http.ResponseWriter, r *auth.AuthenticatedRequest){
+	switch r.Method {
+		case "GET":     
+			getAsOfMaterials(w, r)
+		case "DELETE":
+			deleteAll(w, r)
 	}
+}
+func getAsOfMaterials(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
+	asOf := r.URL.Query().Get("report_date")
+	//decoder := json.NewDecoder(r.Body)
+	//var t asOf
+	//err := decoder.Decode(&t)
+	//if err != nil {
+	//	log.Println(err)
+	//}
 	var results []viewTransaction
-	rows, err1 := db.Query(`SELECT SUM(amount) as amount, material, port FROM main.materialtransactions WHERE transactiondate <= $1 GROUP BY material, port ORDER BY material, port`, "'"+t.Date+"'")
+	rows, err1 := db.Query(`SELECT SUM(amount) as amount, material, port FROM main.materialtransactions WHERE transactiondate <= $1 GROUP BY material, port ORDER BY material, port`, "'"+asOf+"'")
 	if err1 != nil {
 		errors := new(failure)
 		log.Println(err1)
@@ -250,6 +283,40 @@ func getMaterial(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	}
 	json.NewEncoder(w).Encode(results)
 }
+func deleteAll(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
+	if isDev {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+	}
+	tx, errTx := db.Begin()
+	if errTx != nil {
+		return
+	}
+	_, err := tx.Exec(`TRUNCATE main.possibleports, main.possiblematerials, main.materialtransactions`)
+
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+			errors := new(failure)
+			log.Println(err)
+			errors.Failure = err
+			json.NewEncoder(w).Encode(errors)
+			return
+		}
+		err = tx.Commit()
+		if err != nil {
+			errors := new(failure)
+			log.Println(err)
+			errors.Failure = err
+			json.NewEncoder(w).Encode(errors)
+			return
+		}
+		results := new(success)
+		results.Success = true
+		json.NewEncoder(w).Encode(results)
+
+	}()
+}
 
 func init() {
 	f, err := os.OpenFile("server.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
@@ -280,13 +347,12 @@ func main() {
 	http.HandleFunc("/", ath.Wrap(func(res http.ResponseWriter, req *auth.AuthenticatedRequest) {
 		http.FileServer(http.Dir(currEnv.Statichtml)).ServeHTTP(res, &req.Request)
 	}))
-	http.HandleFunc("/writePort", ath.Wrap(writePortType))
-	http.HandleFunc("/writeMaterial", ath.Wrap(writeMaterialType))
-	http.HandleFunc("/writeTransaction", ath.Wrap(writeTransaction))
-	http.HandleFunc("/getResults", ath.Wrap(getAsOfMaterials))
-	http.HandleFunc("/getPorts", ath.Wrap(getPort))
-	http.HandleFunc("/getMaterials", ath.Wrap(getMaterial))
-	http.HandleFunc("/getAllResults", ath.Wrap(getAllResults))
+	
+	
+	http.HandleFunc("/port", ath.Wrap(port))
+	http.HandleFunc("/material", ath.Wrap(material))
+	http.HandleFunc("/transaction", ath.Wrap(transaction_req))
+	http.HandleFunc("/all", ath.Wrap(all))
 	log.Println("Listening...")
 	http.ListenAndServe(":3000", nil)
 }

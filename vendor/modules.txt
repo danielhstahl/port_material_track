@@ -1,0 +1,14 @@
+# github.com/abbot/go-http-auth v0.4.0
+## explicit
+github.com/abbot/go-http-auth
+# github.com/lib/pq v1.0.0
+## explicit
+github.com/lib/pq
+github.com/lib/pq/oid
+# golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9
+## explicit
+golang.org/x/crypto/bcrypt
+golang.org/x/crypto/blowfish
+# golang.org/x/net v0.0.0-20181220203305-927f97764cc3
+## explicit
+golang.org/x/net/context
