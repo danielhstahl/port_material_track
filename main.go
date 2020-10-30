@@ -185,7 +185,7 @@ func all(w http.ResponseWriter, r *auth.AuthenticatedRequest){
 }
 func getAsOfMaterials(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	asOf := r.URL.Query().Get("report_date")
-	log.Println("This is as of date: $1", asOf)
+	log.Println("This is as of date:", asOf)
 	var results []viewTransaction
 	rows, err := db.Query(`SELECT SUM(amount) as amount, material, port FROM main.materialtransactions WHERE transactiondate <= $1 GROUP BY material, port ORDER BY material, port`, "'"+asOf+"'")
 	if err != nil {
