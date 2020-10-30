@@ -12,3 +12,4 @@ port_material_track
 *.txt
 vendor/*
 !vendor/modules.txt
+droplet_password

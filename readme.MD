@@ -36,3 +36,12 @@ in the binary folder
 user: `porttransaction`
 password: `zu3<U@2Cz[uG>Hmf`
 name: `portserver`
+
+# install
+
+`go get`
+`go build`
+
+If errors occur, try
+`go mod tidy`
+`go mod vendor`
