@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
 	"github.com/abbot/go-http-auth"
 	_ "github.com/lib/pq"
 )
@@ -147,8 +146,6 @@ func writeTransaction(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	_, errFirstInput := tx.Exec(`INSERT INTO main.materialtransactions (port, material, transactiondate, amount, comment) VALUES($1, $2, $3, $4, $5)`, t.FirstPort.Port, t.FirstPort.Material, t.FirstPort.Date, t.FirstPort.Amount, t.FirstPort.Comment)
 
 	if t.SecondPort.Port != "" {
-		//log.Println("Second port is not blank")
-		//log.Println(t.SecondPort.Port)
 		_, errSecondInput := tx.Exec(`INSERT INTO main.materialtransactions (port, material, transactiondate, amount, comment) VALUES($1, $2, $3, $4, $5)`, t.SecondPort.Port, t.SecondPort.Material, t.SecondPort.Date, t.SecondPort.Amount, t.SecondPort.Comment)
 		err = errSecondInput
 	}
@@ -188,18 +185,13 @@ func all(w http.ResponseWriter, r *auth.AuthenticatedRequest){
 }
 func getAsOfMaterials(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	asOf := r.URL.Query().Get("report_date")
-	//decoder := json.NewDecoder(r.Body)
-	//var t asOf
-	//err := decoder.Decode(&t)
-	//if err != nil {
-	//	log.Println(err)
-	//}
+	log.Println("This is as of date: $1", asOf)
 	var results []viewTransaction
-	rows, err1 := db.Query(`SELECT SUM(amount) as amount, material, port FROM main.materialtransactions WHERE transactiondate <= $1 GROUP BY material, port ORDER BY material, port`, "'"+asOf+"'")
-	if err1 != nil {
+	rows, err := db.Query(`SELECT SUM(amount) as amount, material, port FROM main.materialtransactions WHERE transactiondate <= $1 GROUP BY material, port ORDER BY material, port`, "'"+asOf+"'")
+	if err != nil {
 		errors := new(failure)
-		log.Println(err1)
-		errors.Failure = err1
+		log.Println(err)
+		errors.Failure = err
 		json.NewEncoder(w).Encode(errors)
 	} else {
 		defer rows.Close()
@@ -221,11 +213,11 @@ func getAllResults(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 		w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 	}
 	var results []transaction
-	rows, err1 := db.Query(`SELECT  port, CAST(transactiondate as char(10)) as transactiondate, amount, material, CASE WHEN comment IS NULL THEN '' ELSE comment END as comment FROM main.materialtransactions ORDER BY material, port, transactiondate`)
-	if err1 != nil {
+	rows, err := db.Query(`SELECT  port, CAST(transactiondate as char(10)) as transactiondate, amount, material, CASE WHEN comment IS NULL THEN '' ELSE comment END as comment FROM main.materialtransactions ORDER BY material, port, transactiondate`)
+	if err != nil {
 		errors := new(failure)
-		errors.Failure = err1
-		log.Println(err1)
+		errors.Failure = err
+		log.Println(err)
 		json.NewEncoder(w).Encode(errors)
 	} else {
 		defer rows.Close()
@@ -247,20 +239,24 @@ func getPort(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 		w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 	}
 	var results []string
-	rows, err1 := db.Query(`SELECT port FROM main.possibleports ORDER BY port`)
-	if err1 != nil {
-		log.Println(err1)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var portRow string
-		err := rows.Scan(&portRow)
-		if err != nil {
-			log.Println(err)
+	rows, err := db.Query(`SELECT port FROM main.possibleports ORDER BY port`)
+	if err != nil {
+		errors := new(failure)
+		errors.Failure = err
+		log.Println(err)
+		json.NewEncoder(w).Encode(errors)
+	} else {
+		defer rows.Close()
+		for rows.Next() {
+			var portRow string
+			err := rows.Scan(&portRow)
+			if err != nil {
+				log.Println(err)
+			}
+			results = append(results, portRow)
 		}
-		results = append(results, portRow)
+		json.NewEncoder(w).Encode(results)
 	}
-	json.NewEncoder(w).Encode(results)
 }
 func getMaterial(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	if isDev {
@@ -268,20 +264,24 @@ func getMaterial(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 		w.Header().Set("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
 	}
 	var results []string
-	rows, err1 := db.Query(`SELECT material FROM main.possiblematerials ORDER BY material`)
-	if err1 != nil {
-		log.Println(err1)
-	}
-	defer rows.Close()
-	for rows.Next() {
-		var matRow string
-		err := rows.Scan(&matRow)
-		if err != nil {
-			log.Println(err)
+	rows, err := db.Query(`SELECT material FROM main.possiblematerials ORDER BY material`)
+	if err != nil {
+		errors := new(failure)
+		errors.Failure = err
+		log.Println(err)
+		json.NewEncoder(w).Encode(errors)
+	} else {
+		defer rows.Close()
+		for rows.Next() {
+			var matRow string
+			err := rows.Scan(&matRow)
+			if err != nil {
+				log.Println(err)
+			}
+			results = append(results, matRow)
 		}
-		results = append(results, matRow)
+		json.NewEncoder(w).Encode(results)
 	}
-	json.NewEncoder(w).Encode(results)
 }
 func deleteAll(w http.ResponseWriter, r *auth.AuthenticatedRequest) {
 	if isDev {
